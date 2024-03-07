@@ -1,14 +1,15 @@
 ---
+# Tham khảo về file Playbook của Ansible https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html
+# Các Keyword trong Playbook https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#playbook-keywords
+# Tham khảo riêng các tham số về Network Cisco https://www.packetswitch.co.uk/ansible-with-cisco/
 - name: Lấy thông tin IP của các thiết bị Cisco
-  hosts: all
+  hosts: all # Tên của thiết bị trong Ansible server
   tasks:
     - name: Lấy thông tin về các thiết bị Cisco
-      ios_facts:
+      ios_facts: # https://docs.ansible.com/ansible/latest/collections/cisco/ios/ios_facts_module.html
       register: ios_facts_result
 
     - name: Hiển thị thông tin về IP của các thiết bị
-      debug:
-        msg: "Địa chỉ IP của thiết bị {{ item.key }} là {{ item.value.ansible_net_all_ipv4_addresses }}"
-      loop: "{{ ios_facts_result.ansible_facts }}"
-      loop_control:
-        label: "{{ item.key }}"
+      debug: 
+        msg: "Địa chỉ IP của thiết bị {{ item.key }} là {{ item.value.ipv4 }}"
+      loop: "{{ ios_facts_result.ansible_facts['ansible_net_all_ipv4_addresses'] | dict2items }}"
