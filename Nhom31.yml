@@ -1,12 +1,21 @@
 ---
-- name: Lấy running config của các thiết bị Cisco
+- name: Tạo các Loopback Interface và Hiển thị địa chỉ IP của cổng trên thiết bị Cisco
   hosts: cisco_routers
   tasks:
-    - name: Lấy running config
-      ios_config:
-        src: running
-      register: running_config
+    - name: Create and Set loopback IPv4 address
+      ios_l3_interface:
+        name: Loopback{{ item.number }}
+        ipv4: 10.100.{{ item.number }}.1/24
+      with_items:
+        - { number: 94 }
+        - { number: 95 }
+        - { number: 96 }
 
-    - name: Hiển thị running config
-      debug:
-        msg: "{{ running_config }}"
+    - name: Hiển thị địa chỉ IP của tất cả các cổng
+      ios_command:
+        commands:
+          - show ip interface brief
+      register: show_ip
+
+    - debug: 
+        var: show_ip.stdout_lines
