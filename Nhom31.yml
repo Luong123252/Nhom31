@@ -2,23 +2,14 @@
 # Tham khảo về file Playbook của Ansible https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html
 # Các Keyword trong Playbook https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#playbook-keywords
 # Tham khảo riêng các tham số về Network Cisco https://www.packetswitch.co.uk/ansible-with-cisco/
-- name: Tạo các Loobpack Interface
+- name: Lấy thông tin IP của các thiết bị Cisco
   hosts: all # Tên của thiết bị trong Ansible server
-# Các tác vụ
   tasks:
-    - name: Create and Set loopback IPv4 address # Đặt tên task để quản lý
-      ios_l3_interface: # https://docs.ansible.com/ansible/latest/collections/cisco/ios/ios_l3_interfaces_module.html
-        name: loopback {{ item.name }} # tên Loopback Interface
-        ipv4: 10.100.{{ item.number }}.1/24 # địa chỉ IP của Loopback Interface
-      with_items:
-        - { name: "94", number: 94}
-        - { name: "95", number: 95}
-        - { name: "96", number: 96}
-    #Xem lại tất cả các cổng
-    - name: Show ip of all
-      ios_command: # Viết lệnh để gửi ở mode command line của router
-        commands:
-          - sh ip int bri     #show ip int brief # This command to SHOW ALL Interface briefly
-      register: show_ip # gắn kết quả vào biến show_ip
+    - name: Lấy thông tin về các thiết bị Cisco
+      ios_facts: # https://docs.ansible.com/ansible/latest/collections/cisco/ios/ios_facts_module.html
+      register: ios_facts_result
 
-    - debug: var=show_ip.stdout_lines # debug: in ra màn hình, đặt biến var(lấy thông tin của các dòng từ show_ip gắn vào),in biến var
+    - name: Hiển thị thông tin về IP của các thiết bị
+      debug: 
+        msg: "Địa chỉ IP của thiết bị {{ item.key }} là {{ item.value.ipv4 }}"
+      loop: "{{ ios_facts_result.ansible_facts['ansible_net_all_ipv4_addresses'] | dict2items }}"
