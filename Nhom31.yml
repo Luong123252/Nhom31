@@ -1,15 +1,21 @@
 ---
-# Tham khảo về file Playbook của Ansible https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html
-# Các Keyword trong Playbook https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#playbook-keywords
-# Tham khảo riêng các tham số về Network Cisco https://www.packetswitch.co.uk/ansible-with-cisco/
-- name: Lấy thông tin IP của các thiết bị Cisco
-  hosts: all # Tên của thiết bị trong Ansible server
+- name: Tạo các Loopback Interface và Hiển thị địa chỉ IP của cổng trên thiết bị Cisco
+  hosts: cisco_routers
   tasks:
-    - name: Lấy thông tin về các thiết bị Cisco
-      ios_facts: # https://docs.ansible.com/ansible/latest/collections/cisco/ios/ios_facts_module.html
-      register: ios_facts_result
+    - name: Create and Set loopback IPv4 address
+      ios_l3_interface:
+        name: Loopback{{ item.number }}
+        ipv4: 10.100.{{ item.number }}.1/24
+      with_items:
+        - { number: 94 }
+        - { number: 95 }
+        - { number: 96 }
 
-    - name: Hiển thị thông tin về IP của các thiết bị
-      debug: 
-        msg: "Địa chỉ IP của thiết bị {{ item.key }} là {{ item.value.ipv4 }}"
-      loop: "{{ ios_facts_result.ansible_facts['ansible_net_all_ipv4_addresses'] | dict2items }}"
+    - name: Hiển thị địa chỉ IP của tất cả các cổng
+      ios_command:
+        commands:
+          - show ip interface brief
+      register: show_ip
+
+    - debug: 
+        var: show_ip.stdout_lines
